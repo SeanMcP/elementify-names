@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element-ify Names</title>
+    <meta name="description" content="Identify all of the atomic symbols in a name">
+    <link rel="icon" href="favicon.ico">
+    <style>
+        :root {
+            --off-background: hsl(0, 0%, 97%);
+            --text: hsl(0, 0%, 25%);
+            --faint-text: hsl(0, 0%, 45%);
+        }
+
+        body {
+            color: var(--text);
+            font-family: system-ui;
+            margin: 1rem;
+        }
+
+        main {
+            margin-inline: auto;
+            max-width: 50ch;
+        }
+
+        button,
+        input {
+            border: 1px solid var(--faint-text);
+            border-radius: 0.25rem;
+            font: inherit;
+        }
+
+        button {
+            background-color: var(--off-background);
+        }
+
+        header {
+            display: grid;
+            column-gap: 0.5rem;
+            grid-template-columns: 4rem auto;
+            margin-block-end: 1rem;
+            row-gap: 0.25rem;
+
+            &>* {
+                margin: 0;
+            }
+
+            img {
+                grid-row: 1 / span 2;
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                align-self: end;
+            }
+
+            p {
+                align-self: start;
+                color: var(--faint-text);
+                font-style: italic;
+            }
+        }
+
+
+        form {
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: min-content auto min-content;
+
+            label {
+                align-self: center;
+            }
+
+            input {
+                padding: 0.25rem 0.5rem;
+            }
+
+            button {
+                padding-inline: 1rem;
+            }
+        }
+
+        output {
+            background-color: var(--off-background);
+            border-radius: 0.5rem;
+            display: block;
+            margin-block-start: 1rem;
+            padding: 1rem;
+
+            &:empty {
+                display: none;
+            }
+
+            ol {
+                margin: 0;
+            }
+
+            li+li {
+                margin-block-start: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <header>
+            <img src="./atom.svg" alt="Atom symbol" />
+            <h1>Element-ify Names</h1>
+            <p>Identify all of the atomic symbols in a name</p>
+        </header>
+        <form>
+            <label for="name">Name</label>
+            <input id="name" type="text" name="name" />
+            <button>Go</button>
+        </form>
+        <output></output>
+    </main>
+
+    <script>
+        const form = document.querySelector('form');
+        const output = document.querySelector('output');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const name = formData.get('name');
+
+            if (!name) {
+                output.textContent = 'Please enter a name.';
+                return;
+            }
+
+            const options = convertNameToAtomicSymbols(name);
+
+            if (options.length === 0) {
+                output.textContent = `No elements found in "${name}". Try using a nickname or including the family name.`;
+                return;
+            }
+
+            output.innerHTML = `<ol>` + options.map(o => `<li>${o}</li>`).join('') + `</ol>`;
+        });
+
+        /**
+         * @typedef {Object} Element
+         * @property {Number} number - The atomic number.
+         * @property {String} symbol - The element's symbol.
+         * @property {String} name - The element's name.
+         * @property {String} comparison - The lowercase string used for matching.
+         */
+
+        /** @type {Element[]} */
+        const elements = [
+            { number: 1, symbol: "H", name: "Hydrogen", comparison: "h" },
+            { number: 2, symbol: "He", name: "Helium", comparison: "he" },
+            { number: 3, symbol: "Li", name: "Lithium", comparison: "li" },
+            { number: 4, symbol: "Be", name: "Beryllium", comparison: "be" },
+            { number: 5, symbol: "B", name: "Boron", comparison: "b" },
+            { number: 6, symbol: "C", name: "Carbon", comparison: "c" },
+            { number: 7, symbol: "N", name: "Nitrogen", comparison: "n" },
+            { number: 8, symbol: "O", name: "Oxygen", comparison: "o" },
+            { number: 9, symbol: "F", name: "Fluorine", comparison: "f" },
+            { number: 10, symbol: "Ne", name: "Neon", comparison: "ne" },
+            { number: 11, symbol: "Na", name: "Sodium", comparison: "na" },
+            { number: 12, symbol: "Mg", name: "Magnesium", comparison: "mg" },
+            { number: 13, symbol: "Al", name: "Aluminium", comparison: "al" },
+            { number: 14, symbol: "Si", name: "Silicon", comparison: "si" },
+            { number: 15, symbol: "P", name: "Phosphorus", comparison: "p" },
+            { number: 16, symbol: "S", name: "Sulfur", comparison: "s" },
+            { number: 17, symbol: "Cl", name: "Chlorine", comparison: "cl" },
+            { number: 18, symbol: "Ar", name: "Argon", comparison: "ar" },
+            { number: 19, symbol: "K", name: "Potassium", comparison: "k" },
+            { number: 20, symbol: "Ca", name: "Calcium", comparison: "ca" },
+            { number: 21, symbol: "Sc", name: "Scandium", comparison: "sc" },
+            { number: 22, symbol: "Ti", name: "Titanium", comparison: "ti" },
+            { number: 23, symbol: "V", name: "Vanadium", comparison: "v" },
+            { number: 24, symbol: "Cr", name: "Chromium", comparison: "cr" },
+            { number: 25, symbol: "Mn", name: "Manganese", comparison: "mn" },
+            { number: 26, symbol: "Fe", name: "Iron", comparison: "fe" },
+            { number: 27, symbol: "Co", name: "Cobalt", comparison: "co" },
+            { number: 28, symbol: "Ni", name: "Nickel", comparison: "ni" },
+            { number: 29, symbol: "Cu", name: "Copper", comparison: "cu" },
+            { number: 30, symbol: "Zn", name: "Zinc", comparison: "zn" },
+            { number: 31, symbol: "Ga", name: "Gallium", comparison: "ga" },
+            { number: 32, symbol: "Ge", name: "Germanium", comparison: "ge" },
+            { number: 33, symbol: "As", name: "Arsenic", comparison: "as" },
+            { number: 34, symbol: "Se", name: "Selenium", comparison: "se" },
+            { number: 35, symbol: "Br", name: "Bromine", comparison: "br" },
+            { number: 36, symbol: "Kr", name: "Krypton", comparison: "kr" },
+            { number: 37, symbol: "Rb", name: "Rubidium", comparison: "rb" },
+            { number: 38, symbol: "Sr", name: "Strontium", comparison: "sr" },
+            { number: 39, symbol: "Y", name: "Yttrium", comparison: "y" },
+            { number: 40, symbol: "Zr", name: "Zirconium", comparison: "zr" },
+            { number: 41, symbol: "Nb", name: "Niobium", comparison: "nb" },
+            { number: 42, symbol: "Mo", name: "Molybdenum", comparison: "mo" },
+            { number: 43, symbol: "Tc", name: "Technetium", comparison: "tc" },
+            { number: 44, symbol: "Ru", name: "Ruthenium", comparison: "ru" },
+            { number: 45, symbol: "Rh", name: "Rhodium", comparison: "rh" },
+            { number: 46, symbol: "Pd", name: "Palladium", comparison: "pd" },
+            { number: 47, symbol: "Ag", name: "Silver", comparison: "ag" },
+            { number: 48, symbol: "Cd", name: "Cadmium", comparison: "cd" },
+            { number: 49, symbol: "In", name: "Indium", comparison: "in" },
+            { number: 50, symbol: "Sn", name: "Tin", comparison: "sn" },
+            { number: 51, symbol: "Sb", name: "Antimony", comparison: "sb" },
+            { number: 52, symbol: "Te", name: "Tellurium", comparison: "te" },
+            { number: 53, symbol: "I", name: "Iodine", comparison: "i" },
+            { number: 54, symbol: "Xe", name: "Xenon", comparison: "xe" },
+            { number: 55, symbol: "Cs", name: "Cesium", comparison: "cs" },
+            { number: 56, symbol: "Ba", name: "Barium", comparison: "ba" },
+            { number: 57, symbol: "La", name: "Lanthanum", comparison: "la" },
+            { number: 58, symbol: "Ce", name: "Cerium", comparison: "ce" },
+            { number: 59, symbol: "Pr", name: "Praseodymium", comparison: "pr" },
+            { number: 60, symbol: "Nd", name: "Neodymium", comparison: "nd" },
+            { number: 61, symbol: "Pm", name: "Promethium", comparison: "pm" },
+            { number: 62, symbol: "Sm", name: "Samarium", comparison: "sm" },
+            { number: 63, symbol: "Eu", name: "Europium", comparison: "eu" },
+            { number: 64, symbol: "Gd", name: "Gadolinium", comparison: "gd" },
+            { number: 65, symbol: "Tb", name: "Terbium", comparison: "tb" },
+            { number: 66, symbol: "Dy", name: "Dysprosium", comparison: "dy" },
+            { number: 67, symbol: "Ho", name: "Holmium", comparison: "ho" },
+            { number: 68, symbol: "Er", name: "Erbium", comparison: "er" },
+            { number: 69, symbol: "Tm", name: "Thulium", comparison: "tm" },
+            { number: 70, symbol: "Yb", name: "Ytterbium", comparison: "yb" },
+            { number: 71, symbol: "Lu", name: "Lutetium", comparison: "lu" },
+            { number: 72, symbol: "Hf", name: "Hafnium", comparison: "hf" },
+            { number: 73, symbol: "Ta", name: "Tantalum", comparison: "ta" },
+            { number: 74, symbol: "W", name: "Tungsten", comparison: "w" },
+            { number: 75, symbol: "Re", name: "Rhenium", comparison: "re" },
+            { number: 76, symbol: "Os", name: "Osmium", comparison: "os" },
+            { number: 77, symbol: "Ir", name: "Iridium", comparison: "ir" },
+            { number: 78, symbol: "Pt", name: "Platinum", comparison: "pt" },
+            { number: 79, symbol: "Au", name: "Gold", comparison: "au" },
+            { number: 80, symbol: "Hg", name: "Mercury", comparison: "hg" },
+            { number: 81, symbol: "Tl", name: "Thallium", comparison: "tl" },
+            { number: 82, symbol: "Pb", name: "Lead", comparison: "pb" },
+            { number: 83, symbol: "Bi", name: "Bismuth", comparison: "bi" },
+            { number: 84, symbol: "Po", name: "Polonium", comparison: "po" },
+            { number: 85, symbol: "At", name: "Astatine", comparison: "at" },
+            { number: 86, symbol: "Rn", name: "Radon", comparison: "rn" },
+            { number: 87, symbol: "Fr", name: "Francium", comparison: "fr" },
+            { number: 88, symbol: "Ra", name: "Radium", comparison: "ra" },
+            { number: 89, symbol: "Ac", name: "Actinium", comparison: "ac" },
+            { number: 90, symbol: "Th", name: "Thorium", comparison: "th" },
+            { number: 91, symbol: "Pa", name: "Protactinium", comparison: "pa" },
+            { number: 92, symbol: "U", name: "Uranium", comparison: "u" },
+            { number: 93, symbol: "Np", name: "Neptunium", comparison: "np" },
+            { number: 94, symbol: "Pu", name: "Plutonium", comparison: "pu" },
+            { number: 95, symbol: "Am", name: "Americium", comparison: "am" },
+            { number: 96, symbol: "Cm", name: "Curium", comparison: "cm" },
+            { number: 97, symbol: "Bk", name: "Berkelium", comparison: "bk" },
+            { number: 98, symbol: "Cf", name: "Californium", comparison: "cf" },
+            { number: 99, symbol: "Es", name: "Einsteinium", comparison: "es" },
+            { number: 100, symbol: "Fm", name: "Fermium", comparison: "fm" },
+            { number: 101, symbol: "Md", name: "Mendelevium", comparison: "md" },
+            { number: 102, symbol: "No", name: "Nobelium", comparison: "no" },
+            { number: 103, symbol: "Lr", name: "Lawrencium", comparison: "lr" },
+            { number: 104, symbol: "Rf", name: "Rutherfordium", comparison: "rf" },
+            { number: 105, symbol: "Db", name: "Dubnium", comparison: "db" },
+            { number: 106, symbol: "Sg", name: "Seaborgium", comparison: "sg" },
+            { number: 107, symbol: "Bh", name: "Bohrium", comparison: "bh" },
+            { number: 108, symbol: "Hs", name: "Hassium", comparison: "hs" },
+            { number: 109, symbol: "Mt", name: "Meitnerium", comparison: "mt" },
+            { number: 110, symbol: "Ds", name: "Darmstadtium", comparison: "ds" },
+            { number: 111, symbol: "Rg", name: "Roentgenium", comparison: "rg" },
+            { number: 112, symbol: "Cn", name: "Copernicium", comparison: "cn" },
+            { number: 113, symbol: "Nh", name: "Nihonium", comparison: "nh" },
+            { number: 114, symbol: "Fl", name: "Flerovium", comparison: "fl" },
+            { number: 115, symbol: "Mc", name: "Moscovium", comparison: "mc" },
+            { number: 116, symbol: "Lv", name: "Livermorium", comparison: "lv" },
+            { number: 117, symbol: "Ts", name: "Tennessine", comparison: "ts" },
+            { number: 118, symbol: "Og", name: "Oganesson", comparison: "og" }
+        ];
+        /**
+         * Takes a name and returns an array of options where the name includes a single atomic symbol
+         * @param {string} name
+         * @returns {string[]}
+         * 
+         * @example
+         * Nathan -> [ [Na]than, Na[Th]an, Nat[Ha]n, Nat[H]an ]
+         */
+        function convertNameToAtomicSymbols(name) {
+            const nameArray = name.split('');
+            const options = [];
+
+            for (let i = 0; i < nameArray.length; i++) {
+                let single, double;
+                const singleComparison = nameArray[i].toLowerCase();
+                const doubleComparison = (nameArray[i] + nameArray[i + 1]).toLowerCase();
+
+                for (let j = 0; j < elements.length; j++) {
+                    const element = elements[j];
+                    if (element.comparison === singleComparison) {
+                        single = element;
+                    }
+                    if (element.comparison === doubleComparison) {
+                        double = element;
+                    }
+                }
+
+                if (single) {
+                    const option = nameArray.slice();
+                    option[i] = getElementMarkup(single);
+                    options.push(option.join(''));
+                }
+
+                if (double) {
+                    const option = nameArray.slice();
+                    option.splice(i, 2, getElementMarkup(double));
+                    options.push(option.join(''));
+                }
+            }
+
+            return options;
+        }
+
+        /**
+         * @param {Element} element
+         * @returns {string}
+         */
+        function getElementMarkup(element) {
+            return `[<abbr title="${element.name}">${element.symbol}</abbr>]`;
+        }
+    </script>
+</body>
+
+</html>
